@@ -1,0 +1,586 @@
+{
+  "title": "AI System Design Atlas",
+  "repository": "https://github.com/LazyBuilder/AI-System-Design-Atlas-KB",
+  "research_date": "2026-10-20",
+  "package_date": "2026-10-22",
+  "categories": [
+    {
+      "id": "conversation",
+      "title": "Conversational AI",
+      "description": "Systems activated by a person speaking or typing."
+    },
+    {
+      "id": "voice",
+      "title": "Voice & ambient",
+      "description": "Speech pipelines, realtime conversations, and smart speakers."
+    },
+    {
+      "id": "applications",
+      "title": "Web & desktop",
+      "description": "Intelligence embedded in browsers, business software, and desktop tools."
+    },
+    {
+      "id": "devices",
+      "title": "Mobile & edge",
+      "description": "Inference on phones, local machines, and physical devices."
+    },
+    {
+      "id": "background",
+      "title": "Invisible AI",
+      "description": "Predictions and processing without an active conversation."
+    },
+    {
+      "id": "orchestration",
+      "title": "Workflows & agents",
+      "description": "How models, tools, queues, and people coordinate work."
+    }
+  ],
+  "architectures": [
+    {
+      "id": "request-response",
+      "title": "Request–response inference",
+      "description": "A bounded prediction or generation behind an application interface.",
+      "categories": [
+        "conversation",
+        "applications",
+        "background"
+      ],
+      "flow": [
+        "Request",
+        "Validate & prepare",
+        "Model endpoint",
+        "Validate result",
+        "Response"
+      ],
+      "fit": "A single model call solves a well-scoped task.",
+      "tradeoff": "Simple operation, but slow inference can exceed interface deadlines.",
+      "failure": "Timeouts or malformed output: set deadlines, check schemas, and provide a deterministic fallback.",
+      "evaluation": "Track end-to-end p95 latency, invalid outputs, and task success.",
+      "example": "A web app classifies a support ticket.",
+      "sources": [
+        "ops"
+      ]
+    },
+    {
+      "id": "rag",
+      "title": "Retrieval-augmented generation",
+      "description": "Ground a generated answer in a maintained collection of evidence.",
+      "categories": [
+        "conversation",
+        "applications",
+        "orchestration"
+      ],
+      "flow": [
+        "Question",
+        "Permission-aware retrieval",
+        "Rank evidence",
+        "Generate with sources",
+        "Answer"
+      ],
+      "fit": "Answers need information beyond model parameters.",
+      "tradeoff": "Retrieval adds freshness and evidence, but also indexing and permission complexity.",
+      "failure": "Missing evidence or unsupported claims: test retrieval separately and allow abstention.",
+      "evaluation": "Measure evidence recall, citation support, and answer correctness on held-out questions.",
+      "example": "A handbook assistant retrieves approved policy passages.",
+      "sources": [
+        "rag"
+      ]
+    },
+    {
+      "id": "tool-agent",
+      "title": "Tool-using agent loop",
+      "description": "Let a model choose a bounded action, observe its result, and decide what follows.",
+      "categories": [
+        "conversation",
+        "applications",
+        "orchestration"
+      ],
+      "flow": [
+        "Goal & state",
+        "Choose tool",
+        "Policy gate",
+        "Execute & observe",
+        "Continue or stop"
+      ],
+      "fit": "The next step depends on what the system discovers.",
+      "tradeoff": "Flexible execution brings variable completion time and cost.",
+      "failure": "Loops or unintended side effects: limit steps and require approval for consequential actions.",
+      "evaluation": "Measure completion, tool errors, unsafe action attempts, and cost per task.",
+      "example": "A desktop assistant investigates a problem through approved diagnostic tools.",
+      "sources": [
+        "agents"
+      ]
+    },
+    {
+      "id": "chained-voice",
+      "title": "Chained voice pipeline",
+      "description": "Separate speech recognition, text reasoning, and spoken output.",
+      "categories": [
+        "conversation",
+        "voice",
+        "applications",
+        "devices"
+      ],
+      "flow": [
+        "Microphone",
+        "Speech to text",
+        "Text reasoning",
+        "Text to speech",
+        "Speaker"
+      ],
+      "fit": "Inspectable text and control over each speech stage matter.",
+      "tradeoff": "Stage-by-stage control adds latency and can propagate transcription mistakes.",
+      "failure": "Misheard names or poor turn boundaries: confirm critical details and cancel interrupted playback.",
+      "evaluation": "Measure transcription quality, first-audio latency, and interruption recovery.",
+      "example": "A telephone assistant confirms a requested appointment date.",
+      "sources": [
+        "voice"
+      ]
+    },
+    {
+      "id": "realtime-voice",
+      "title": "Realtime speech-to-speech",
+      "description": "Stream audio to a model and spoken responses back through a continuous session.",
+      "categories": [
+        "conversation",
+        "voice",
+        "applications",
+        "devices"
+      ],
+      "flow": [
+        "Audio input",
+        "Realtime session",
+        "Audio model ↔ tools",
+        "Audio output stream",
+        "Playback"
+      ],
+      "fit": "Natural conversational timing is central.",
+      "tradeoff": "Connection state, buffering, and interruption management become core responsibilities.",
+      "failure": "Talking over a person or playing stale output: cancel the current turn and reconcile session state.",
+      "evaluation": "Measure response onset, turn completion, and barge-in success in noise.",
+      "example": "A mobile language tutor supports quick spoken exchanges.",
+      "sources": [
+        "voice"
+      ]
+    },
+    {
+      "id": "wake-word",
+      "title": "Wake-word gated assistant",
+      "description": "A local trigger opens an intentional interaction with a speaker or wearable.",
+      "categories": [
+        "voice",
+        "devices"
+      ],
+      "flow": [
+        "Microphone buffer",
+        "Local wake detector",
+        "Active session",
+        "Intent or voice service",
+        "Device response"
+      ],
+      "fit": "A device waits for a short activation phrase.",
+      "tradeoff": "Low-power listening balances missed activations against false triggers.",
+      "failure": "Unwanted activation: provide a clear activity indicator, physical mute, and bounded retention.",
+      "evaluation": "Test false accepts per listening hour, missed wakes, and power consumption.",
+      "example": "A smart speaker activates a voice session after detecting a local trigger.",
+      "sources": [
+        "edge",
+        "voice"
+      ]
+    },
+    {
+      "id": "on-device",
+      "title": "On-device inference",
+      "description": "Run the model near the data without a required cloud round trip.",
+      "categories": [
+        "devices",
+        "applications",
+        "background"
+      ],
+      "flow": [
+        "Local signal",
+        "Preprocess",
+        "Device runtime",
+        "Local model",
+        "Local result"
+      ],
+      "fit": "Offline behavior or local data handling is essential.",
+      "tradeoff": "Memory, battery, model size, and hardware support constrain quality.",
+      "failure": "Thermal throttling or unsupported operations: test real hardware and provide compatible fallbacks.",
+      "evaluation": "Measure energy per inference, memory, cold and warm latency, and task accuracy.",
+      "example": "A phone recognizes objects without network connectivity.",
+      "sources": [
+        "edge"
+      ]
+    },
+    {
+      "id": "hybrid",
+      "title": "Hybrid edge–cloud",
+      "description": "Keep a local fast path and escalate selected work to remote inference.",
+      "categories": [
+        "devices",
+        "voice",
+        "applications"
+      ],
+      "flow": [
+        "Local request",
+        "Local model",
+        "Confidence & policy gate",
+        "Optional cloud model",
+        "Merge result"
+      ],
+      "fit": "Local speed matters but some tasks exceed device capabilities.",
+      "tradeoff": "Two paths complicate consistency and outage recovery.",
+      "failure": "Unintended data transfer or unstable routing: define transfer permissions and explicit escalation rules.",
+      "evaluation": "Compare local coverage, escalation rate, quality, and network-failure recovery.",
+      "example": "A phone handles simple commands locally and escalates complex questions with permission.",
+      "sources": [
+        "edge"
+      ]
+    },
+    {
+      "id": "embedded-copilot",
+      "title": "Contextual application copilot",
+      "description": "Bring selected application state into an assistant beside the work.",
+      "categories": [
+        "applications",
+        "conversation"
+      ],
+      "flow": [
+        "Selected app context",
+        "Context adapter",
+        "Model + retrieval",
+        "Proposed change",
+        "User review"
+      ],
+      "fit": "Assistance should understand the current document or workflow.",
+      "tradeoff": "Context improves relevance but can expose unrelated information.",
+      "failure": "Stale or overbroad context: minimize selection, check permissions, and show a reviewable diff.",
+      "evaluation": "Measure accepted suggestions, correction burden, and context-access errors.",
+      "example": "An editor suggests a rewrite of selected text.",
+      "sources": [
+        "rag",
+        "agents"
+      ]
+    },
+    {
+      "id": "computer-use",
+      "title": "Browser & desktop action agent",
+      "description": "Translate a goal into observed interface actions with repeated verification.",
+      "categories": [
+        "applications",
+        "orchestration"
+      ],
+      "flow": [
+        "Goal",
+        "Observe interface",
+        "Plan next action",
+        "Permission gate",
+        "Act & verify"
+      ],
+      "fit": "A necessary system has a usable interface but no suitable API.",
+      "tradeoff": "Layout changes and hidden state make interface automation brittle.",
+      "failure": "Acting on the wrong control: verify preconditions and the resulting screen before continuing.",
+      "evaluation": "Measure success across layout variations, recovery rate, and unauthorized actions.",
+      "example": "An assistant navigates a legacy application with review before submission.",
+      "sources": [
+        "agents"
+      ]
+    },
+    {
+      "id": "event-driven",
+      "title": "Event-driven AI worker",
+      "description": "An event starts an independent, recoverable unit of AI work.",
+      "categories": [
+        "background",
+        "orchestration",
+        "applications"
+      ],
+      "flow": [
+        "Event",
+        "Durable queue",
+        "Worker + model",
+        "Validate decision",
+        "Result or review"
+      ],
+      "fit": "Work should begin when a record or signal changes.",
+      "tradeoff": "Queues decouple producers and workers but introduce eventual consistency.",
+      "failure": "Duplicate processing or poison messages: use idempotency, bounded retries, and a dead-letter queue.",
+      "evaluation": "Measure queue age, duplicate effects, completions, and exhausted retries.",
+      "example": "A newly published document triggers automatic categorization.",
+      "sources": [
+        "async"
+      ]
+    },
+    {
+      "id": "batch",
+      "title": "Batch inference pipeline",
+      "description": "Process a dataset on a schedule and publish versioned outputs.",
+      "categories": [
+        "background",
+        "orchestration"
+      ],
+      "flow": [
+        "Snapshot dataset",
+        "Prepare features",
+        "Parallel inference",
+        "Quality checks",
+        "Publish results"
+      ],
+      "fit": "Results can wait and many records need the same operation.",
+      "tradeoff": "Efficient bulk processing trades freshness for throughput.",
+      "failure": "Partial outputs or stale snapshots: check completeness and publish atomically.",
+      "evaluation": "Measure throughput, cost per record, freshness, and failed partitions.",
+      "example": "A nightly job refreshes labels across a catalog.",
+      "sources": [
+        "batch"
+      ]
+    },
+    {
+      "id": "streaming",
+      "title": "Streaming detection & scoring",
+      "description": "Continuously turn events into timely predictions and signals.",
+      "categories": [
+        "background",
+        "devices"
+      ],
+      "flow": [
+        "Event stream",
+        "Window & features",
+        "Model scoring",
+        "Decision policy",
+        "Alert or action"
+      ],
+      "fit": "A changing signal needs decisions while still relevant.",
+      "tradeoff": "Event ordering and state management complicate operations.",
+      "failure": "Late data or feature drift: define event-time windows and monitor distributions.",
+      "evaluation": "Measure event-to-decision lag, missed detections, false alarms, and feature freshness.",
+      "example": "An equipment monitor flags unusual vibration.",
+      "sources": [
+        "ops"
+      ]
+    },
+    {
+      "id": "recommendation",
+      "title": "Retrieval & ranking system",
+      "description": "Select a useful ordered set of results from a large catalog.",
+      "categories": [
+        "background",
+        "applications"
+      ],
+      "flow": [
+        "Catalog & context",
+        "Candidate retrieval",
+        "Score candidates",
+        "Re-rank constraints",
+        "Published choices"
+      ],
+      "fit": "The product needs ranked recommendations or search results.",
+      "tradeoff": "Fast candidate retrieval may eliminate good items before ranking begins.",
+      "failure": "Feedback loops or cold starts: evaluate coverage and define exploration policies.",
+      "evaluation": "Measure retrieval recall, ranking quality, diversity, and fresh-item coverage.",
+      "example": "A reading app orders relevant articles without exposing chat.",
+      "sources": [
+        "rank"
+      ]
+    },
+    {
+      "id": "document",
+      "title": "Document understanding pipeline",
+      "description": "Turn unstructured pages into validated, usable records.",
+      "categories": [
+        "background",
+        "applications",
+        "orchestration"
+      ],
+      "flow": [
+        "Document",
+        "OCR & layout",
+        "Extract fields",
+        "Schema + evidence checks",
+        "Review or export"
+      ],
+      "fit": "Information lives in scanned or inconsistently formatted pages.",
+      "tradeoff": "Layout variation and ambiguous fields make extraction quality uneven.",
+      "failure": "Confidently wrong values: retain page evidence and route uncertain fields to review.",
+      "evaluation": "Measure field precision, recall, and correction time across layouts.",
+      "example": "A back-office process extracts invoice line items for review.",
+      "sources": [
+        "rag",
+        "ops"
+      ]
+    },
+    {
+      "id": "routing",
+      "title": "Router & specialist models",
+      "description": "Choose a suitable model or workflow before expensive processing.",
+      "categories": [
+        "orchestration",
+        "applications",
+        "background"
+      ],
+      "flow": [
+        "Request",
+        "Task router",
+        "Specialist paths A / B",
+        "Output validation",
+        "Response"
+      ],
+      "fit": "Different task classes benefit from different handling.",
+      "tradeoff": "A cheap routing decision can become the main source of downstream mistakes.",
+      "failure": "Misrouting or overloaded specialists: test boundary cases and supply a default path.",
+      "evaluation": "Measure route confusion, specialist success, latency, and total cost.",
+      "example": "A service routes billing and technical questions differently.",
+      "sources": [
+        "agents"
+      ]
+    },
+    {
+      "id": "workflow",
+      "title": "Deterministic AI workflow",
+      "description": "Use explicit stages and gates around bounded model calls.",
+      "categories": [
+        "orchestration",
+        "background",
+        "applications"
+      ],
+      "flow": [
+        "Trigger",
+        "Model step",
+        "Code validation",
+        "Next fixed step",
+        "Review or finish"
+      ],
+      "fit": "The sequence is known and repeatable.",
+      "tradeoff": "Predictable execution adapts poorly to ambiguous requirements.",
+      "failure": "Bad intermediate outputs contaminate later steps: validate every stage and stop on failure.",
+      "evaluation": "Measure stage pass rates, final success, and rework.",
+      "example": "A report workflow extracts evidence, drafts, and checks required sections.",
+      "sources": [
+        "agents"
+      ]
+    },
+    {
+      "id": "multi-agent",
+      "title": "Coordinator & specialist workers",
+      "description": "Delegate independent subtasks and reconcile their evidence.",
+      "categories": [
+        "orchestration",
+        "applications",
+        "background"
+      ],
+      "flow": [
+        "Task",
+        "Coordinator",
+        "Parallel specialists",
+        "Evidence merge",
+        "Final verification"
+      ],
+      "fit": "A problem has separable analysis or research branches.",
+      "tradeoff": "Parallelism increases coordination overhead and can duplicate work.",
+      "failure": "Conflicting findings or lost provenance: give bounded assignments and merge against original evidence.",
+      "evaluation": "Measure coverage, duplication, synthesis quality, and cost against a single-worker baseline.",
+      "example": "A research system investigates independent aspects of a topic.",
+      "sources": [
+        "multi"
+      ]
+    },
+    {
+      "id": "review-loop",
+      "title": "Generate–evaluate–revise",
+      "description": "Improve a candidate using explicit criteria and a bounded revision loop.",
+      "categories": [
+        "orchestration",
+        "applications",
+        "background"
+      ],
+      "flow": [
+        "Criteria",
+        "Generate candidate",
+        "Evaluate",
+        "Revise if needed",
+        "Accept or escalate"
+      ],
+      "fit": "Outputs can be assessed against meaningful criteria.",
+      "tradeoff": "Extra passes take time and a model evaluator can share the generator’s blind spots.",
+      "failure": "Endless revision or superficial improvement: cap iterations and add independent checks.",
+      "evaluation": "Measure improvements against held-out judgments, regressions, and iteration count.",
+      "example": "A writing workflow checks a draft against an approved outline.",
+      "sources": [
+        "agents"
+      ]
+    },
+    {
+      "id": "human-review",
+      "title": "Human approval checkpoint",
+      "description": "Separate a proposed decision from permission to execute it.",
+      "categories": [
+        "orchestration",
+        "applications",
+        "background"
+      ],
+      "flow": [
+        "Model proposal",
+        "Evidence & uncertainty",
+        "Human review",
+        "Approve or reject",
+        "Audited execution"
+      ],
+      "fit": "Consequential decisions need accountable human judgment.",
+      "tradeoff": "Review adds delay and only helps when the evidence is inspectable.",
+      "failure": "Rubber-stamping or stale approval: bind approval to the exact action and invalidate changed proposals.",
+      "evaluation": "Measure disagreement, corrections, review-queue age, and post-approval changes.",
+      "example": "A purchasing assistant prepares an order for a person to approve.",
+      "sources": [
+        "agents"
+      ]
+    }
+  ],
+  "sources": {
+    "voice": {
+      "title": "OpenAI · Voice architectures",
+      "url": "https://developers.openai.com/api/docs/guides/voice-agents",
+      "note": "Speech-to-speech and chained recognition, reasoning, and synthesis."
+    },
+    "agents": {
+      "title": "Anthropic · Building effective agents",
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "note": "Fixed workflows, model-directed agents, routing, chaining, and evaluation loops."
+    },
+    "multi": {
+      "title": "Anthropic · Multi-agent research system",
+      "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "note": "Coordinating a lead agent with research workers."
+    },
+    "rag": {
+      "title": "Microsoft · RAG design and evaluation",
+      "url": "https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/rag/rag-solution-design-and-evaluation-guide",
+      "note": "Ingestion, retrieval, orchestration, and evaluation."
+    },
+    "edge": {
+      "title": "Google · LiteRT",
+      "url": "https://developers.google.com/edge/litert",
+      "note": "Local inference on mobile, web, desktop, and embedded platforms."
+    },
+    "rank": {
+      "title": "Google · Recommendation systems",
+      "url": "https://developers.google.com/machine-learning/recommendation/overview/types",
+      "note": "Candidate generation, scoring, and re-ranking."
+    },
+    "async": {
+      "title": "AWS · Asynchronous inference",
+      "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/async-inference.html",
+      "note": "Queued prediction and asynchronous output delivery."
+    },
+    "batch": {
+      "title": "AWS · Batch transform",
+      "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/batch-transform.html",
+      "note": "Offline inference over datasets."
+    },
+    "ops": {
+      "title": "TensorFlow · TFX user guide",
+      "url": "https://www.tensorflow.org/tfx/guide",
+      "note": "Production pipelines and consistent training/serving transformations."
+    }
+  }
+}
